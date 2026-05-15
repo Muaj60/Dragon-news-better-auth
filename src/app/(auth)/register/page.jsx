@@ -1,7 +1,10 @@
 "use client";
+import { authClient } from "@/lib/auth-client";
+import { cleanStores } from "better-auth/react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const RegisterPage = () => {
   const {
@@ -10,10 +13,29 @@ const RegisterPage = () => {
     formState: { errors },
   } = useForm();
 
-  const handleLogInFunc = (data) => {
+  const [isShowPassword, setIsShowPassword] = useState(false);
+
+  const handleLogInFunc = async (data) => {
     console.log(data);
+    const { email, name, photo, password } = data;
+
+    const { data: res, error } = await authClient.signUp.email({
+      name: name, // required
+      email: email, // required
+      password: password, // required
+      image: photo,
+      callbackURL: "/",
+    });
+    console.log(res, error);
+
+    if (error) {
+      alert(error.message);
+    }
+    if (res) {
+      alert("sign up successful");
+    }
   };
-  console.log(errors,'errors');
+  console.log(errors, "errors");
   return (
     <div className="container mx-auto min-h-[80vh] flex justify-center items-center bg-slate-100">
       <div className="p-4 rounded-xl bg-white">
@@ -22,7 +44,7 @@ const RegisterPage = () => {
         </h2>
 
         <form className="space-y-4" onSubmit={handleSubmit(handleLogInFunc)}>
-             <fieldset className="fieldset">
+          <fieldset className="fieldset">
             <legend className="fieldset-legend">Name</legend>
             <input
               type="text"
@@ -58,25 +80,32 @@ const RegisterPage = () => {
               type="email"
               className="input"
               placeholder="Type here email"
-              {...register("email",{ required: "Email filed must required" })}
+              {...register("email", { required: "Email filed must required" })}
             />
-             {errors.password&&<p className="text-blue-500">{errors.email.message}</p>}
+            {errors.password && (
+              <p className="text-blue-500">{errors.email.message}</p>
+            )}
           </fieldset>
           <fieldset className="fieldset relative">
             <legend className="fieldset-legend">Password</legend>
             <input
-              type="password"
+               type={isShowPassword?"text":"password"}
               className="input"
               placeholder="Type here password"
-              {...register("password", { required: "password filed must required" })}
+              {...register("password", {
+                required: "password filed must required",
+              })}
             />
-            {errors.password&&<p className="text-red-500">{errors.password.message}</p>}
+             <span className="absolute right-10 top-4 cursor-pointer " onClick={()=>setIsShowPassword(!isShowPassword)}>{isShowPassword?<FaEye/>:<FaEyeSlash/>}</span>
+            {errors.password && (
+              <p className="text-red-500">{errors.password.message}</p>
+            )}
           </fieldset>
 
-          <button className="btn w-full bg-slate-800 text-white">Register</button>
+          <button className="btn w-full bg-slate-800 text-white">
+            Register
+          </button>
         </form>
-
-       
       </div>
     </div>
   );
